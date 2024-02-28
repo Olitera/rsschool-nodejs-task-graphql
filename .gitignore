@@ -42,9 +42,6 @@ jspm_packages
 # vim swap files
 *.swp
 
-# webstorm
-.idea
-
 # vscode
 .vscode
 *code-workspace
@@ -64,3 +61,6 @@ dist
 
 database.db
 database.db-journal
+
+# webstorm
+.idea
