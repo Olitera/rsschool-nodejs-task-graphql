@@ -2,7 +2,7 @@ import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
 import {
   graphql,
-  GraphQLBoolean,
+  GraphQLBoolean, GraphQLEnumType,
   GraphQLFloat,
   GraphQLList,
   GraphQLNonNull,
@@ -10,6 +10,15 @@ import {
   GraphQLSchema,
   GraphQLString
 } from 'graphql';
+import { UUIDType } from '../../routes/graphql/types/uuid.js';
+
+const memberTypeId = new GraphQLEnumType({
+  name: 'MemberTypeId',
+  values: {
+    basic: { value: 'basic' },
+    business: { value: 'business' },
+  }
+});
 
 const memberTypes = new GraphQLObjectType({
   name: 'memberTypes',
@@ -86,7 +95,12 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     async handler(req) {
       const source = req.body.query;
       const variableValues = req.body.variables;
-      // console.log( req )
+      const a = await graphql({
+        source,
+        variableValues,
+        schema: Schema
+      })
+      console.log(a.errors)
       return await graphql({
         source,
         variableValues,
@@ -104,10 +118,32 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           return prisma.memberType.findMany();
         }
       },
+      memberType: {
+        type: memberTypes,
+        args: {
+          id: {
+            type: new GraphQLNonNull(memberTypeId)
+          }
+        },
+        resolve: (_, args) => {
+          return prisma.memberType.findUnique({where: {id: args.id}});
+        }
+      },
       posts: {
         type: new GraphQLList(posts),
         resolve: () => {
           return prisma.post.findMany();
+        }
+      },
+      post: {
+        type: posts,
+        args: {
+          id: {
+            type: UUIDType
+          }
+        },
+        resolve: (_, args) => {
+          return prisma.post.findUnique({where: {id: args.id}});
         }
       },
       users: {
@@ -116,10 +152,32 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           return prisma.user.findMany();
         }
       },
+      user: {
+        type: users,
+        args: {
+          id: {
+            type: UUIDType
+          }
+        },
+        resolve: (_, args) => {
+          return prisma.user.findUnique({where: {id: args.id}});
+        }
+      },
       profiles: {
         type: new GraphQLList(profiles),
         resolve: () => {
           return prisma.profile.findMany();
+        }
+      },
+      profile: {
+        type: profiles,
+        args: {
+          id: {
+            type: UUIDType
+          }
+        },
+        resolve: (_, args) => {
+          return prisma.profile.findUnique({where: {id: args.id}});
         }
       }
     })
